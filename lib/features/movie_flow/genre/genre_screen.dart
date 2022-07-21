@@ -1,53 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movieapp/%20core/constants.dart';
 import 'package:movieapp/%20core/widgets/primary_button.dart';
 import 'package:movieapp/features/movie_flow/genre/genre.dart';
 import 'package:movieapp/features/movie_flow/genre/list_card.dart';
+import 'package:movieapp/features/movie_flow/movie_flow_controller.dart';
 
-class GenreScreen extends StatefulWidget {
+class GenreScreen extends ConsumerWidget {
   const GenreScreen({
     Key? key,
-    required this.nextPage,
-    required this.previousPage,
   }) : super(key: key);
-  final VoidCallback nextPage;
-  final VoidCallback previousPage;
 
   @override
-  State<GenreScreen> createState() => _GenreScreenState();
-}
-
-class _GenreScreenState extends State<GenreScreen> {
-  List<Genre> genres = [
-    Genre(name: 'Action'),
-    Genre(name: 'Comedy'),
-    Genre(name: 'Horror'),
-    Genre(name: 'Anime'),
-    Genre(name: 'Drama'),
-    Genre(name: 'Family'),
-    Genre(name: 'Romance'),
-  ];
-
-  void toggleSelected(Genre genre) {
-    List<Genre> updatedGenres = [
-      for (final oldGenre in genres)
-        if (oldGenre == genre) oldGenre.toggleSelected() else oldGenre
-    ];
-
-    setState(() {
-      genres = updatedGenres;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
-          onPressed: widget.previousPage,
-        ),
+            onPressed:
+                ref.read(MovieFlowControllerProvider.notifier).previousPage),
       ),
       body: Center(
         child: Column(children: [
@@ -57,23 +29,40 @@ class _GenreScreenState extends State<GenreScreen> {
             textAlign: TextAlign.center,
           ),
           Expanded(
-              child: ListView.separated(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: kListItemSpacing),
-                  itemBuilder: (context, index) {
-                    final genre = genres[index];
-                    return ListCaerd(
-                      genre: genre,
-                      onTap: () => toggleSelected(genre),
+            child: ref.watch(MovieFlowControllerProvider).genres.when(
+                  data: (genres) {
+                    return ListView.separated(
+                      itemCount: genres.length,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: kListItemSpacing),
+                      itemBuilder: (context, index) {
+                        final genre = genres[index];
+                        return ListCaerd(
+                          genre: genre,
+                          onTap: () => ref
+                              .read(MovieFlowControllerProvider.notifier)
+                              .toggleSelected(genre),
+                        );
+                      },
+                      separatorBuilder: ((context, index) {
+                        return SizedBox(
+                          height: kListItemSpacing,
+                        );
+                      }),
                     );
                   },
-                  separatorBuilder: ((context, index) {
-                    return SizedBox(
-                      height: kListItemSpacing,
-                    );
-                  }),
-                  itemCount: genres.length)),
-          PrimaryButton(onPressed: widget.nextPage, text: 'Continue'),
+                  error: (e, s) {
+                    return const Text('Something went wrong from our end');
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+          ),
+          PrimaryButton(
+              onPressed:
+                  ref.read(MovieFlowControllerProvider.notifier).nextPage,
+              text: 'Continue'),
           const SizedBox(
             height: kMediumSpacing,
           )

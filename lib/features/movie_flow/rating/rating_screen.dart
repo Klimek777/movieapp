@@ -1,28 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movieapp/%20core/constants.dart';
 import 'package:movieapp/%20core/widgets/primary_button.dart';
+import 'package:movieapp/features/movie_flow/movie_flow_controller.dart';
 
-class RatingScreen extends StatefulWidget {
-  const RatingScreen(
-      {Key? key, required this.nextPage, required this.previousPage})
-      : super(key: key);
-  final VoidCallback nextPage;
-  final VoidCallback previousPage;
-  @override
-  State<RatingScreen> createState() => _RatingScreenState();
-}
-
-class _RatingScreenState extends State<RatingScreen> {
-  double rating = 5;
+class RatingScreen extends ConsumerWidget {
+  const RatingScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
-          onPressed: widget.previousPage,
+          onPressed:
+              ref.read(MovieFlowControllerProvider.notifier).previousPage,
         ),
       ),
       body: Center(
@@ -38,7 +33,7 @@ class _RatingScreenState extends State<RatingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${rating.ceil()}',
+                '${ref.watch(MovieFlowControllerProvider).rating}',
                 style: theme.textTheme.headline2,
               ),
               const Icon(
@@ -50,19 +45,22 @@ class _RatingScreenState extends State<RatingScreen> {
           ),
           const Spacer(),
           Slider(
-            label: '${rating.ceil()}',
+            label: '${ref.watch(MovieFlowControllerProvider).rating}',
             divisions: 10,
             min: 1,
             max: 10,
-            value: rating,
+            value: ref.watch(MovieFlowControllerProvider).rating.toDouble(),
             onChanged: (value) {
-              setState(() {
-                rating = value;
-              });
+              ref
+                  .read(MovieFlowControllerProvider.notifier)
+                  .updateRating(value.toInt());
             },
           ),
           const Spacer(),
-          PrimaryButton(onPressed: widget.nextPage, text: 'Yes please'),
+          PrimaryButton(
+              onPressed:
+                  ref.watch(MovieFlowControllerProvider.notifier).nextPage,
+              text: 'Yes please'),
           const SizedBox(
             height: kMediumSpacing,
           )

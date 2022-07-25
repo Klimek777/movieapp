@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movieapp/%20core/constants.dart';
+import 'package:movieapp/%20core/failure.dart';
+import 'package:movieapp/%20core/widgets/failure_screen.dart';
 import 'package:movieapp/%20core/widgets/primary_button.dart';
 import 'package:movieapp/features/movie_flow/genre/genre.dart';
 import 'package:movieapp/features/movie_flow/genre/list_card.dart';
@@ -51,8 +53,15 @@ class GenreScreen extends ConsumerWidget {
                       }),
                     );
                   },
-                  error: (e, s) {
-                    return const Text('Something went wrong from our end');
+                  error: (
+                    e,
+                    s,
+                  ) {
+                    if (e is Failure) {
+                      return FailureBody(message: e.message);
+                    }
+                    return const FailureBody(
+                        message: 'Something went from on our end');
                   },
                   loading: () => const Center(
                     child: CircularProgressIndicator(),
